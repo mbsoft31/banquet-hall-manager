@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Mbsoft\BanquetHallManager\Http\Controllers\ClientController;
 use Mbsoft\BanquetHallManager\Http\Controllers\EventController;
 
-Route::prefix('api/bhm')->group(function () {
+Route::prefix('api/bhm')
+    ->middleware('auth')
+    ->group(function () {
     Route::get('health', function () {
         $version = 'dev';
         try {

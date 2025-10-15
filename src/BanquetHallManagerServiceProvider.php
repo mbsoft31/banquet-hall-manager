@@ -38,6 +38,11 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(Hall::class, HallPolicy::class);
 
+        // Define basic capability gates (can be customized by host app)
+        Gate::define('bhm.read', fn ($user) => true);
+        Gate::define('bhm.write', fn ($user) => true);
+        Gate::define('bhm.delete', fn ($user) => true);
+
         $this->app->afterResolving(Schedule::class, function (Schedule $schedule): void {
             $schedule->command('bhm:mark-overdue')->hourly();
             $schedule->command('bhm:send-reminders')->dailyAt('09:00');

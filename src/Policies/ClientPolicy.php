@@ -3,6 +3,7 @@
 namespace Mbsoft\BanquetHallManager\Policies;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Gate;
 use Mbsoft\BanquetHallManager\Models\Client;
 use Mbsoft\BanquetHallManager\Policies\Concerns\ResolvesTenant;
 
@@ -12,11 +13,20 @@ class ClientPolicy
 
     public function viewAny(?Authenticatable $user): bool
     {
-        return true;
+        if (!Gate::forUser($user)->allows('bhm.read')) {
+            return false;
+        }
+        if (!config('banquethallmanager.multi_tenancy')) {
+            return true;
+        }
+        return (bool) $this->currentTenantId($user);
     }
 
     public function view(?Authenticatable $user, Client $client): bool
     {
+        if (!Gate::forUser($user)->allows('bhm.read')) {
+            return false;
+        }
         if (!config('banquethallmanager.multi_tenancy')) {
             return true;
         }
@@ -26,6 +36,9 @@ class ClientPolicy
 
     public function create(?Authenticatable $user): bool
     {
+        if (!Gate::forUser($user)->allows('bhm.write')) {
+            return false;
+        }
         if (!config('banquethallmanager.multi_tenancy')) {
             return true;
         }
@@ -34,12 +47,14 @@ class ClientPolicy
 
     public function update(?Authenticatable $user, Client $client): bool
     {
+        if (!Gate::forUser($user)->allows('bhm.write')) {
+            return false;
+        }
         return $this->view($user, $client);
     }
 
     public function delete(?Authenticatable $user, Client $client): bool
     {
-        // Keep permissive for scaffold so header-scoped calls can delete.
-        return true;
+        return Gate::forUser($user)->allows('bhm.delete');
     }
 }
