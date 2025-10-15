@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Mbsoft\BanquetHallManager\Http\Controllers\ClientController;
 use Mbsoft\BanquetHallManager\Http\Controllers\EventController;
+use Mbsoft\BanquetHallManager\Http\Controllers\BookingController;
+use Mbsoft\BanquetHallManager\Http\Controllers\InvoiceController;
 
 Route::prefix('api/bhm')
     ->middleware('auth')
@@ -21,4 +23,7 @@ Route::prefix('api/bhm')
     // CRUD endpoints
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('events', EventController::class);
+    Route::apiResource('bookings', BookingController::class);
+    Route::apiResource('invoices', InvoiceController::class)->only(['index','show','update']);
+    Route::post('events/{event}/invoice', [InvoiceController::class, 'storeFromEvent']);
 });

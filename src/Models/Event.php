@@ -4,6 +4,7 @@ namespace Mbsoft\BanquetHallManager\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Mbsoft\BanquetHallManager\Support\Traits\BelongsToTenant;
 
 class Event extends Model
@@ -42,5 +43,9 @@ class Event extends Model
     {
         return $this->belongsTo(Client::class);
     }
-}
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'event_id');
+    }
+}
