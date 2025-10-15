@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Mbsoft\BanquetHallManager\Http\Requests\Payment\StorePaymentRequest;
 use Mbsoft\BanquetHallManager\Models\Invoice;
 use Mbsoft\BanquetHallManager\Models\Payment;
+use Mbsoft\BanquetHallManager\Http\Resources\PaymentResource;
 
 class PaymentController extends BaseController
 {
@@ -21,13 +22,13 @@ class PaymentController extends BaseController
             $query->where('invoice_id', (int) $invoiceId);
         }
         $per = (int) (request()->query('per_page', 15));
-        return response()->json($query->orderByDesc('id')->paginate($per));
+        return PaymentResource::collection($query->orderByDesc('id')->paginate($per));
     }
 
     public function show(Payment $payment)
     {
         $this->authorize('view', $payment);
-        return response()->json($payment);
+        return PaymentResource::make($payment);
     }
 
     public function store(StorePaymentRequest $request)
@@ -64,7 +65,6 @@ class PaymentController extends BaseController
             $invoice->save();
         }
 
-        return response()->json($payment, 201);
+        return PaymentResource::make($payment)->response()->setStatusCode(201);
     }
 }
-

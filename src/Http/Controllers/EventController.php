@@ -9,6 +9,7 @@ use Mbsoft\BanquetHallManager\Http\Requests\Event\UpdateEventRequest;
 use Mbsoft\BanquetHallManager\Models\Client;
 use Mbsoft\BanquetHallManager\Models\Event;
 use Mbsoft\BanquetHallManager\Models\Hall;
+use Mbsoft\BanquetHallManager\Http\Resources\EventResource;
 
 class EventController extends BaseController
 {
@@ -35,18 +36,14 @@ class EventController extends BaseController
         }
 
         $perPage = (int) (request()->query('per_page', 15));
-        return response()->json($query->paginate($perPage));
+        return EventResource::collection($query->paginate($perPage));
     }
 
     public function show(Event $event)
     {
         $this->authorize('view', $event);
         $event->load(['hall:id,name', 'client:id,name']);
-        $payload = array_merge($event->attributesToArray(), [
-            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
-            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
-        ]);
-        return response()->json($payload);
+        return EventResource::make($event);
     }
 
     public function store(StoreEventRequest $request)
@@ -62,11 +59,7 @@ class EventController extends BaseController
 
         $event = Event::create($data);
         $event->load(['hall:id,name', 'client:id,name']);
-        $payload = array_merge($event->attributesToArray(), [
-            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
-            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
-        ]);
-        return response()->json($payload, 201);
+        return EventResource::make($event)->response()->setStatusCode(201);
     }
 
     public function update(UpdateEventRequest $request, Event $event)
@@ -85,11 +78,7 @@ class EventController extends BaseController
 
         $event->update($data);
         $event->load(['hall:id,name', 'client:id,name']);
-        $payload = array_merge($event->attributesToArray(), [
-            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
-            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
-        ]);
-        return response()->json($payload);
+        return EventResource::make($event);
     }
 
     public function destroy(Event $event)
@@ -127,7 +116,7 @@ class EventController extends BaseController
             return response()->json(['message' => 'Scheduling conflict for hall.'], 422);
         }
         $eventModel->update($data);
-        return response()->json($eventModel->refresh());
+        return EventResource::make($eventModel->refresh());
     }
 
     public function cancel(int $event)
@@ -135,6 +124,6 @@ class EventController extends BaseController
         $eventModel = Event::findOrFail($event);
         $this->authorize('update', $eventModel);
         $eventModel->update(['status' => 'cancelled']);
-        return response()->json($eventModel->refresh());
+        return EventResource::make($eventModel->refresh());
     }
 }

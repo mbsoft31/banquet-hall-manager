@@ -5,6 +5,7 @@ namespace Mbsoft\BanquetHallManager;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 use Mbsoft\BanquetHallManager\Models\Client;
 use Mbsoft\BanquetHallManager\Models\Event;
@@ -35,6 +36,9 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
     {
         // Merge default config so package works without publishing
         $this->mergeConfigFrom(__DIR__.'/Config/banquethallmanager.php', 'banquethallmanager');
+
+        // API Resources without 'data' wrapper for single resources to keep responses terse
+        JsonResource::withoutWrapping();
 
         $this->publishes([
             __DIR__.'/Config/banquethallmanager.php' => config_path('banquethallmanager.php'),

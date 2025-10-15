@@ -8,6 +8,7 @@ use Mbsoft\BanquetHallManager\Http\Requests\Staff\StoreStaffRequest;
 use Mbsoft\BanquetHallManager\Http\Requests\Staff\UpdateStaffRequest;
 use Mbsoft\BanquetHallManager\Models\Event;
 use Mbsoft\BanquetHallManager\Models\Staff;
+use Mbsoft\BanquetHallManager\Http\Resources\StaffResource;
 
 class StaffController extends BaseController
 {
@@ -23,13 +24,13 @@ class StaffController extends BaseController
                   ->orWhere('role', 'like', "%$s%");
             });
         }
-        return response()->json($q->paginate((int) request('per_page', 15)));
+        return StaffResource::collection($q->paginate((int) request('per_page', 15)));
     }
 
     public function show(Staff $staff)
     {
         $this->authorize('view', $staff);
-        return response()->json($staff);
+        return StaffResource::make($staff);
     }
 
     public function store(StoreStaffRequest $request)
@@ -38,14 +39,14 @@ class StaffController extends BaseController
         $data = $request->validated();
         unset($data['tenant_id']);
         $staff = Staff::create($data);
-        return response()->json($staff, 201);
+        return StaffResource::make($staff)->response()->setStatusCode(201);
     }
 
     public function update(UpdateStaffRequest $request, Staff $staff)
     {
         $this->authorize('update', $staff);
         $staff->update($request->validated());
-        return response()->json($staff);
+        return StaffResource::make($staff);
     }
 
     public function destroy(Staff $staff)

@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Mbsoft\BanquetHallManager\Http\Requests\Hall\StoreHallRequest;
 use Mbsoft\BanquetHallManager\Http\Requests\Hall\UpdateHallRequest;
 use Mbsoft\BanquetHallManager\Models\Hall;
+use Mbsoft\BanquetHallManager\Http\Resources\HallResource;
 
 class HallController extends BaseController
 {
@@ -23,13 +24,13 @@ class HallController extends BaseController
             });
         }
         $per = (int) (request()->query('per_page', 15));
-        return response()->json($query->paginate($per));
+        return HallResource::collection($query->paginate($per));
     }
 
     public function show(Hall $hall)
     {
         $this->authorize('view', $hall);
-        return response()->json($hall);
+        return HallResource::make($hall);
     }
 
     public function store(StoreHallRequest $request)
@@ -38,14 +39,14 @@ class HallController extends BaseController
         $data = $request->validated();
         unset($data['tenant_id']);
         $hall = Hall::create($data);
-        return response()->json($hall, 201);
+        return HallResource::make($hall)->response()->setStatusCode(201);
     }
 
     public function update(UpdateHallRequest $request, Hall $hall)
     {
         $this->authorize('update', $hall);
         $hall->update($request->validated());
-        return response()->json($hall);
+        return HallResource::make($hall);
     }
 
     public function destroy(Hall $hall)
@@ -55,4 +56,3 @@ class HallController extends BaseController
         return response()->noContent();
     }
 }
-

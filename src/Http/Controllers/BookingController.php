@@ -8,6 +8,7 @@ use Mbsoft\BanquetHallManager\Http\Requests\Booking\StoreBookingRequest;
 use Mbsoft\BanquetHallManager\Http\Requests\Booking\UpdateBookingRequest;
 use Mbsoft\BanquetHallManager\Models\Booking;
 use Mbsoft\BanquetHallManager\Models\Event;
+use Mbsoft\BanquetHallManager\Http\Resources\BookingResource;
 
 class BookingController extends BaseController
 {
@@ -21,13 +22,13 @@ class BookingController extends BaseController
             $query->where('event_id', (int) $eventId);
         }
         $perPage = (int) (request()->query('per_page', 15));
-        return response()->json($query->paginate($perPage));
+        return BookingResource::collection($query->paginate($perPage));
     }
 
     public function show(Booking $booking)
     {
         $this->authorize('view', $booking);
-        return response()->json($booking);
+        return BookingResource::make($booking);
     }
 
     public function store(StoreBookingRequest $request)
@@ -45,7 +46,7 @@ class BookingController extends BaseController
         unset($data['tenant_id']);
 
         $booking = Booking::create($data);
-        return response()->json($booking, 201);
+        return BookingResource::make($booking)->response()->setStatusCode(201);
     }
 
     public function update(UpdateBookingRequest $request, Booking $booking)
@@ -59,7 +60,7 @@ class BookingController extends BaseController
         unset($data['tenant_id']);
 
         Booking::query()->whereKey($booking->getKey())->update($data);
-        return response()->json(Booking::find($booking->getKey()));
+        return BookingResource::make($booking->refresh());
     }
 
     public function destroy(Booking $booking)

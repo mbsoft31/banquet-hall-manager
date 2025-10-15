@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Mbsoft\BanquetHallManager\Http\Requests\Client\StoreClientRequest;
 use Mbsoft\BanquetHallManager\Http\Requests\Client\UpdateClientRequest;
 use Mbsoft\BanquetHallManager\Models\Client;
+use Mbsoft\BanquetHallManager\Http\Resources\ClientResource;
 
 class ClientController extends BaseController
 {
@@ -24,13 +25,13 @@ class ClientController extends BaseController
         }
 
         $perPage = (int) (request()->query('per_page', 15));
-        return response()->json($query->paginate($perPage));
+        return ClientResource::collection($query->paginate($perPage));
     }
 
     public function show(Client $client)
     {
         $this->authorize('view', $client);
-        return response()->json($client);
+        return ClientResource::make($client);
     }
 
     public function store(StoreClientRequest $request)
@@ -41,7 +42,7 @@ class ClientController extends BaseController
         unset($data['tenant_id']);
 
         $client = Client::create($data);
-        return response()->json($client, 201);
+        return ClientResource::make($client)->response()->setStatusCode(201);
     }
 
     public function update(UpdateClientRequest $request, Client $client)
@@ -52,7 +53,7 @@ class ClientController extends BaseController
         unset($data['tenant_id']);
 
         $client->update($data);
-        return response()->json($client);
+        return ClientResource::make($client);
     }
 
     public function destroy(Client $client)

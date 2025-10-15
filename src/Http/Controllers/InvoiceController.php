@@ -10,6 +10,7 @@ use Mbsoft\BanquetHallManager\Models\Booking;
 use Mbsoft\BanquetHallManager\Models\Client;
 use Mbsoft\BanquetHallManager\Models\Event;
 use Mbsoft\BanquetHallManager\Models\Invoice;
+use Mbsoft\BanquetHallManager\Http\Resources\InvoiceResource;
 
 class InvoiceController extends BaseController
 {
@@ -29,13 +30,13 @@ class InvoiceController extends BaseController
             $query->where('event_id', (int) $eventId);
         }
         $perPage = (int) (request()->query('per_page', 15));
-        return response()->json($query->paginate($perPage));
+        return InvoiceResource::collection($query->paginate($perPage));
     }
 
     public function show(Invoice $invoice)
     {
         $this->authorize('view', $invoice);
-        return response()->json($invoice);
+        return InvoiceResource::make($invoice);
     }
 
     public function storeFromEvent(int $event)
@@ -66,7 +67,7 @@ class InvoiceController extends BaseController
         $invoice->invoice_number = sprintf('%s-%s-%d', $prefix, now()->format('Ymd'), $invoice->id);
         $invoice->save();
 
-        return response()->json($invoice, 201);
+        return InvoiceResource::make($invoice)->response()->setStatusCode(201);
     }
 
     public function update(UpdateInvoiceRequest $request, int $invoice)
@@ -74,7 +75,7 @@ class InvoiceController extends BaseController
         $model = Invoice::findOrFail($invoice);
         $this->authorize('update', $model);
         $model->update($request->validated());
-        return response()->json(Invoice::findOrFail($invoice));
+        return InvoiceResource::make(Invoice::findOrFail($invoice));
     }
 
     public function balance(int $invoice)
