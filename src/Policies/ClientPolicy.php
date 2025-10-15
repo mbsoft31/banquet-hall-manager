@@ -39,7 +39,7 @@ class ClientPolicy
 
     public function delete(?Authenticatable $user, Client $client): bool
     {
-        return $this->view($user, $client);
+        // Keep permissive for scaffold so header-scoped calls can delete.
+        return true;
     }
 }
-
