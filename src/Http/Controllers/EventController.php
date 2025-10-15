@@ -98,4 +98,43 @@ class EventController extends BaseController
         $event->delete();
         return response()->noContent();
     }
+
+    protected function hasConflict(int $hallId, string $startAt, string $endAt, ?int $excludeId = null): bool
+    {
+        $q = Event::query()->where('hall_id', $hallId)
+            ->where(function ($w) use ($startAt, $endAt) {
+                $w->whereBetween('start_at', [$startAt, $endAt])
+                  ->orWhereBetween('end_at', [$startAt, $endAt])
+                  ->orWhere(function ($x) use ($startAt, $endAt) {
+                      $x->where('start_at', '<=', $startAt)->where('end_at', '>=', $endAt);
+                  });
+            });
+        if ($excludeId) {
+            $q->where('id', '!=', $excludeId);
+        }
+        return $q->exists();
+    }
+
+    public function reschedule(int $event)
+    {
+        $eventModel = Event::findOrFail($event);
+        $this->authorize('update', $eventModel);
+        $data = request()->validate([
+            'start_at' => ['required', 'date'],
+            'end_at' => ['required', 'date', 'after:start_at'],
+        ]);
+        if ($this->hasConflict($eventModel->hall_id, $data['start_at'], $data['end_at'], $eventModel->id)) {
+            return response()->json(['message' => 'Scheduling conflict for hall.'], 422);
+        }
+        $eventModel->update($data);
+        return response()->json($eventModel->refresh());
+    }
+
+    public function cancel(int $event)
+    {
+        $eventModel = Event::findOrFail($event);
+        $this->authorize('update', $eventModel);
+        $eventModel->update(['status' => 'cancelled']);
+        return response()->json($eventModel->refresh());
+    }
 }

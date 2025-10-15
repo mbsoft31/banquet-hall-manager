@@ -76,4 +76,19 @@ class InvoiceController extends BaseController
         $model->update($request->validated());
         return response()->json(Invoice::findOrFail($invoice));
     }
+
+    public function balance(int $invoice)
+    {
+        $model = Invoice::findOrFail($invoice);
+        $this->authorize('view', $model);
+        $total = (float) $model->total_amount;
+        $paid = (float) \Mbsoft\BanquetHallManager\Models\Payment::where('invoice_id', $model->id)->sum('amount');
+        $due = max(0.0, round($total - $paid, 2));
+        return response()->json([
+            'invoice_id' => $model->id,
+            'total' => $total,
+            'paid' => $paid,
+            'due' => $due,
+        ]);
+    }
 }

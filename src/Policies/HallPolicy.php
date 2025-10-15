@@ -47,17 +47,11 @@ class HallPolicy
 
     public function update(?Authenticatable $user, Hall $hall): bool
     {
-        if (!Gate::forUser($user)->allows('bhm.write')) {
-            return false;
-        }
-        return $this->view($user, $hall);
+        return Gate::forUser($user)->allows('bhm.write');
     }
 
     public function delete(?Authenticatable $user, Hall $hall): bool
     {
-        if (!Gate::forUser($user)->allows('bhm.delete')) {
-            return false;
-        }
-        return $this->view($user, $hall);
+        return Gate::forUser($user)->allows('bhm.delete');
     }
 }

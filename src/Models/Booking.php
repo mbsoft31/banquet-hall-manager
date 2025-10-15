@@ -15,6 +15,7 @@ class Booking extends Model
     protected $fillable = [
         'tenant_id',
         'event_id',
+        'service_type_id',
         'description',
         'quantity',
         'unit_price',
@@ -32,4 +33,3 @@ class Booking extends Model
         return $this->belongsTo(Event::class);
     }
 }
-

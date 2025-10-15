@@ -7,6 +7,9 @@ use Mbsoft\BanquetHallManager\Http\Controllers\BookingController;
 use Mbsoft\BanquetHallManager\Http\Controllers\InvoiceController;
 use Mbsoft\BanquetHallManager\Http\Controllers\ServiceTypeController;
 use Mbsoft\BanquetHallManager\Http\Controllers\PaymentController;
+use Mbsoft\BanquetHallManager\Http\Controllers\HallController;
+use Mbsoft\BanquetHallManager\Http\Controllers\StaffController;
+use Mbsoft\BanquetHallManager\Http\Controllers\AnalyticsController;
 
 Route::prefix('api/bhm')
     ->middleware('auth')
@@ -25,9 +28,17 @@ Route::prefix('api/bhm')
     // CRUD endpoints
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('events', EventController::class);
+    Route::patch('events/{event}/reschedule', [EventController::class, 'reschedule']);
+    Route::post('events/{event}/cancel', [EventController::class, 'cancel']);
     Route::apiResource('bookings', BookingController::class);
     Route::apiResource('invoices', InvoiceController::class)->only(['index','show','update']);
     Route::post('events/{event}/invoice', [InvoiceController::class, 'storeFromEvent']);
+    Route::get('invoices/{invoice}/balance', [InvoiceController::class, 'balance']);
     Route::apiResource('services', ServiceTypeController::class);
     Route::apiResource('payments', PaymentController::class)->only(['index','show','store']);
+    Route::apiResource('halls', HallController::class);
+    Route::apiResource('staff', StaffController::class);
+    Route::post('events/{event}/staff/{staff}', [StaffController::class, 'attachToEvent']);
+    Route::delete('events/{event}/staff/{staff}', [StaffController::class, 'detachFromEvent']);
+    Route::get('analytics/revenue', [AnalyticsController::class, 'revenue']);
 });
