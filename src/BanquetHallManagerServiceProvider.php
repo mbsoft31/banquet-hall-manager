@@ -15,6 +15,9 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Merge default config so package works without publishing
+        $this->mergeConfigFrom(__DIR__.'/Config/banquethallmanager.php', 'banquethallmanager');
+
         $this->publishes([
             __DIR__.'/Config/banquethallmanager.php' => config_path('banquethallmanager.php'),
         ], 'config');
@@ -35,4 +38,3 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
         }
     }
 }
-

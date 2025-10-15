@@ -38,7 +38,11 @@ class EventController extends BaseController
     public function show(Event $event)
     {
         $event->load(['hall:id,name', 'client:id,name']);
-        return response()->json($event);
+        $payload = array_merge($event->attributesToArray(), [
+            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
+            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
+        ]);
+        return response()->json($payload);
     }
 
     public function store(Request $request)
@@ -64,7 +68,11 @@ class EventController extends BaseController
 
         $event = Event::create($data);
         $event->load(['hall:id,name', 'client:id,name']);
-        return response()->json($event, 201);
+        $payload = array_merge($event->attributesToArray(), [
+            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
+            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
+        ]);
+        return response()->json($payload, 201);
     }
 
     public function update(Request $request, Event $event)
@@ -93,7 +101,11 @@ class EventController extends BaseController
 
         $event->update($data);
         $event->load(['hall:id,name', 'client:id,name']);
-        return response()->json($event);
+        $payload = array_merge($event->attributesToArray(), [
+            'hall' => $event->hall ? $event->hall->only(['id', 'name']) : null,
+            'client' => $event->client ? $event->client->only(['id', 'name']) : null,
+        ]);
+        return response()->json($payload);
     }
 
     public function destroy(Event $event)
@@ -102,4 +114,3 @@ class EventController extends BaseController
         return response()->noContent();
     }
 }
-

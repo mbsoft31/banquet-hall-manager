@@ -27,5 +27,14 @@ trait BelongsToTenant
             }
         });
     }
-}
 
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $tenantId = optional(auth()->user())->tenant_id ?? request()->header('X-Tenant-ID');
+        if (config('banquethallmanager.multi_tenancy') && $tenantId) {
+            $query->where($this->getTable() . '.tenant_id', $tenantId);
+        }
+
+        return $query->where($field ?? $this->getRouteKeyName(), $value);
+    }
+}
