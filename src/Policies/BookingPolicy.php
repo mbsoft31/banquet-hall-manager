@@ -47,10 +47,7 @@ class BookingPolicy
 
     public function update(?Authenticatable $user, Booking $booking): bool
     {
-        if (!Gate::forUser($user)->allows('bhm.write')) {
-            return false;
-        }
-        return $this->view($user, $booking);
+        return Gate::forUser($user)->allows('bhm.write');
     }
 
     public function delete(?Authenticatable $user, Booking $booking): bool
@@ -58,4 +55,3 @@ class BookingPolicy
         return Gate::forUser($user)->allows('bhm.delete');
     }
 }
-

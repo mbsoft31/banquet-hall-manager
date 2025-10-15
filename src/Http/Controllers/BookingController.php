@@ -53,15 +53,13 @@ class BookingController extends BaseController
         $this->authorize('update', $booking);
         $data = $request->validated();
 
-        if (array_key_exists('quantity', $data) || array_key_exists('unit_price', $data)) {
-            $qty = (int) ($data['quantity'] ?? $booking->quantity);
-            $unit = (float) ($data['unit_price'] ?? $booking->unit_price);
-            $data['total_price'] = $qty * $unit;
-        }
+        $qty = (int) ($data['quantity'] ?? $booking->quantity);
+        $unit = (float) ($data['unit_price'] ?? $booking->unit_price);
+        $data['total_price'] = $qty * $unit;
         unset($data['tenant_id']);
 
-        $booking->update($data);
-        return response()->json($booking);
+        Booking::query()->whereKey($booking->getKey())->update($data);
+        return response()->json(Booking::find($booking->getKey()));
     }
 
     public function destroy(Booking $booking)
@@ -71,4 +69,3 @@ class BookingController extends BaseController
         return response()->noContent();
     }
 }
-
