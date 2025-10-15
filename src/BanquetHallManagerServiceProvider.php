@@ -11,11 +11,13 @@ use Mbsoft\BanquetHallManager\Models\Event;
 use Mbsoft\BanquetHallManager\Models\Hall;
 use Mbsoft\BanquetHallManager\Models\Booking;
 use Mbsoft\BanquetHallManager\Models\Invoice;
+use Mbsoft\BanquetHallManager\Models\ServiceType;
 use Mbsoft\BanquetHallManager\Policies\ClientPolicy;
 use Mbsoft\BanquetHallManager\Policies\EventPolicy;
 use Mbsoft\BanquetHallManager\Policies\HallPolicy;
 use Mbsoft\BanquetHallManager\Policies\BookingPolicy;
 use Mbsoft\BanquetHallManager\Policies\InvoicePolicy;
+use Mbsoft\BanquetHallManager\Policies\ServiceTypePolicy;
 
 class BanquetHallManagerServiceProvider extends ServiceProvider
 {
@@ -43,6 +45,7 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
         Gate::policy(Hall::class, HallPolicy::class);
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
+        Gate::policy(ServiceType::class, ServiceTypePolicy::class);
 
         // Define basic capability gates (can be customized by host app)
         Gate::define('bhm.read', fn ($user) => true);
