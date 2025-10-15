@@ -2,17 +2,20 @@
 
 namespace Mbsoft\BanquetHallManager\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Mbsoft\BanquetHallManager\Http\Requests\Client\StoreClientRequest;
+use Mbsoft\BanquetHallManager\Http\Requests\Client\UpdateClientRequest;
 use Mbsoft\BanquetHallManager\Models\Client;
 
 class ClientController extends BaseController
 {
-    public function index(Request $request)
+    use AuthorizesRequests;
+    public function index()
     {
+        $this->authorize('viewAny', Client::class);
         $query = Client::query();
-
-        if ($search = $request->query('q')) {
+        if ($search = request()->query('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
                   ->orWhere('email', 'like', "%$search%")
@@ -20,23 +23,20 @@ class ClientController extends BaseController
             });
         }
 
-        $perPage = (int) ($request->query('per_page', 15));
+        $perPage = (int) (request()->query('per_page', 15));
         return response()->json($query->paginate($perPage));
     }
 
     public function show(Client $client)
     {
+        $this->authorize('view', $client);
         return response()->json($client);
     }
 
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $this->authorize('create', Client::class);
+        $data = $request->validated();
 
         unset($data['tenant_id']);
 
@@ -44,14 +44,10 @@ class ClientController extends BaseController
         return response()->json($client, 201);
     }
 
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client)
     {
-        $data = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'email' => ['sometimes', 'nullable', 'email', 'max:255'],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'notes' => ['sometimes', 'nullable', 'string'],
-        ]);
+        $this->authorize('update', $client);
+        $data = $request->validated();
 
         unset($data['tenant_id']);
 
@@ -61,8 +57,8 @@ class ClientController extends BaseController
 
     public function destroy(Client $client)
     {
+        $this->authorize('delete', $client);
         $client->delete();
         return response()->noContent();
     }
 }
-
