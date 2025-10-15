@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Mbsoft\BanquetHallManager\Http\Controllers\ClientController;
+use Mbsoft\BanquetHallManager\Http\Controllers\EventController;
 
 Route::prefix('api/bhm')->group(function () {
     Route::get('health', function () {
@@ -13,5 +15,8 @@ Route::prefix('api/bhm')->group(function () {
         }
         return response()->json(['status' => 'ok', 'package' => 'mbsoft/banquet-hall-manager', 'version' => $version]);
     });
-});
 
+    // CRUD endpoints
+    Route::apiResource('clients', ClientController::class);
+    Route::apiResource('events', EventController::class);
+});
