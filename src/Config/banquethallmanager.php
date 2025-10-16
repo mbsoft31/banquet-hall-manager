@@ -11,5 +11,20 @@ return [
     'notification_channels' => ['mail'],
     'invoice_prefix' => 'BHM',
     'multi_tenancy' => true,
-];
 
+    // Enforce that every request has a tenant context; if a user has tenant_id, it overrides header
+    'enforce_tenant_header' => true,
+
+    // Role enforcement is always enabled; mapping below is used when Spatie roles/permissions are not available
+    'roles' => [
+        'read' => ['viewer', 'staff', 'manager', 'admin'],
+        'write' => ['staff', 'manager', 'admin'],
+        'delete' => ['manager', 'admin'],
+    ],
+    // Spatie permission names (if package installed)
+    'permissions' => [
+        'read' => 'bhm.read',
+        'write' => 'bhm.write',
+        'delete' => 'bhm.delete',
+    ],
+];
