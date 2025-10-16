@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Schema as DbSchema;
 
 use Mbsoft\BanquetHallManager\Models\Client;
 use Mbsoft\BanquetHallManager\Models\Event;
@@ -23,6 +25,8 @@ use Mbsoft\BanquetHallManager\Policies\InvoicePolicy;
 use Mbsoft\BanquetHallManager\Policies\ServiceTypePolicy;
 use Mbsoft\BanquetHallManager\Policies\PaymentPolicy;
 use Mbsoft\BanquetHallManager\Policies\StaffPolicy;
+use Mbsoft\BanquetHallManager\Support\Permissions\AbilityResolver;
+use Mbsoft\BanquetHallManager\Support\Middleware\TenantContext;
 
 class BanquetHallManagerServiceProvider extends ServiceProvider
 {
@@ -39,6 +43,17 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
 
         // API Resources without 'data' wrapper for single resources to keep responses terse
         JsonResource::withoutWrapping();
+
+        // If Spatie permissions is installed but tables are not migrated (e.g., testing with sqlite memory),
+        // provide a no-op registrar to prevent queries against non-existent tables.
+        if (class_exists(\Spatie\Permission\PermissionRegistrar::class) && !DbSchema::hasTable('permissions')) {
+            $this->app->extend(\Spatie\Permission\PermissionRegistrar::class, function ($registrar, $app) {
+                return new class($app['cache']) extends \Spatie\Permission\PermissionRegistrar {
+                    public function registerPermissions(\Illuminate\Contracts\Auth\Access\Gate $gate): bool { return true; }
+                    public function getPermissions(array $params = [], bool $onlyOne = false): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
+                };
+            });
+        }
 
         $this->publishes([
             __DIR__.'/Config/banquethallmanager.php' => config_path('banquethallmanager.php'),
@@ -58,9 +73,14 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
         Gate::policy(Staff::class, StaffPolicy::class);
 
         // Define basic capability gates (can be customized by host app)
-        Gate::define('bhm.read', fn ($user) => true);
-        Gate::define('bhm.write', fn ($user) => true);
-        Gate::define('bhm.delete', fn ($user) => true);
+        Gate::define('bhm.read', fn ($user) => AbilityResolver::canRead($user));
+        Gate::define('bhm.write', fn ($user) => AbilityResolver::canWrite($user));
+        Gate::define('bhm.delete', fn ($user) => AbilityResolver::canDelete($user));
+
+        // Register tenant middleware alias
+        /** @var Router $router */
+        $router = $this->app['router'];
+        $router->aliasMiddleware('bhm.tenant', TenantContext::class);
 
         $this->app->afterResolving(Schedule::class, function (Schedule $schedule): void {
             $schedule->command('bhm:mark-overdue')->hourly();
@@ -71,6 +91,8 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
             $this->commands([
                 Commands\MarkOverdue::class,
                 Commands\SendReminders::class,
+                Commands\SeedRoles::class,
+                Commands\SeedDemo::class,
             ]);
         }
     }

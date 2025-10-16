@@ -12,7 +12,7 @@ use Mbsoft\BanquetHallManager\Http\Controllers\StaffController;
 use Mbsoft\BanquetHallManager\Http\Controllers\AnalyticsController;
 
 Route::prefix('api/bhm')
-    ->middleware('auth')
+    ->middleware(['auth','bhm.tenant'])
     ->group(function () {
     Route::get('health', function () {
         $version = 'dev';
