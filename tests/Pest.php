@@ -62,10 +62,8 @@ expect()->extend('toBeValidPaginatedResponse', function () {
 
 function createTenant(array $attributes = []): \Illuminate\Database\Eloquent\Model
 {
-    // This assumes you have a Tenant model or User model acting as tenant
-    // Adjust based on your actual tenant implementation
     return \Illuminate\Foundation\Auth\User::factory()->create(array_merge([
-        'email' => 'tenant@example.com',
+        'email' => 'tenant' . rand(1000, 9999) . '@example.com',
         'name' => 'Test Tenant',
     ], $attributes));
 }
@@ -75,7 +73,6 @@ function actingAsTenant(\Illuminate\Database\Eloquent\Model $tenant = null): \Il
     $tenant ??= createTenant();
     
     // Set the current tenant in your application
-    // Adjust this based on how your tenant system works
     config(['banquethallmanager.current_tenant_id' => $tenant->id]);
     
     return test()->actingAs($tenant);
@@ -84,5 +81,5 @@ function actingAsTenant(\Illuminate\Database\Eloquent\Model $tenant = null): \Il
 function withoutTenantScope(): void
 {
     // Disable tenant scoping for testing
-    config(['banquethallmanager.disable_tenant_scope' => true]);
+    config(['banquethallmanager.enable_tenant_scoping' => false]);
 }
