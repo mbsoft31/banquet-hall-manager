@@ -29,6 +29,13 @@ class InvoiceController extends BaseController
         if ($eventId = request()->query('event_id')) {
             $query->where('event_id', (int) $eventId);
         }
+        $allowedSorts = ['id','invoice_number','status','due_date','total_amount','created_at'];
+        $sort = request()->query('sort');
+        $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        }
+
         $perPage = (int) (request()->query('per_page', 15));
         return InvoiceResource::collection($query->paginate($perPage));
     }

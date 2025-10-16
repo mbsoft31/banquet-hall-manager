@@ -35,6 +35,13 @@ class EventController extends BaseController
             $query->where('end_at', '<=', $to);
         }
 
+        $allowedSorts = ['id','name','type','start_at','end_at','status','created_at'];
+        $sort = request()->query('sort');
+        $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        }
+
         $perPage = (int) (request()->query('per_page', 15));
         return EventResource::collection($query->paginate($perPage));
     }

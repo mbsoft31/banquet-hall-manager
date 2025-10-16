@@ -23,6 +23,13 @@ class HallController extends BaseController
                   ->orWhere('location', 'like', "%$q%");
             });
         }
+        $allowedSorts = ['id','name','capacity','hourly_rate','status','created_at'];
+        $sort = request()->query('sort');
+        $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        }
+
         $per = (int) (request()->query('per_page', 15));
         return HallResource::collection($query->paginate($per));
     }

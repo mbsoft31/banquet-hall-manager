@@ -21,8 +21,16 @@ class PaymentController extends BaseController
         if ($invoiceId = request()->query('invoice_id')) {
             $query->where('invoice_id', (int) $invoiceId);
         }
+        $allowedSorts = ['id','invoice_id','amount','method','status','paid_at','created_at'];
+        $sort = request()->query('sort');
+        $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        } else {
+            $query->orderByDesc('id');
+        }
         $per = (int) (request()->query('per_page', 15));
-        return PaymentResource::collection($query->orderByDesc('id')->paginate($per));
+        return PaymentResource::collection($query->paginate($per));
     }
 
     public function show(Payment $payment)

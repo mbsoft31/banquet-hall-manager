@@ -24,6 +24,13 @@ class ClientController extends BaseController
             });
         }
 
+        $allowedSorts = ['id','name','email','phone','created_at'];
+        $sort = request()->query('sort');
+        $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $dir);
+        }
+
         $perPage = (int) (request()->query('per_page', 15));
         return ClientResource::collection($query->paginate($perPage));
     }
