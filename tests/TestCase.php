@@ -2,17 +2,20 @@
 
 namespace Mbsoft\BanquetHallManager\Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Mbsoft\BanquetHallManager\BanquetHallManagerServiceProvider;
-use Orchestra\Testbench\Concerns\WithWorkbench;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
-abstract class TestCase extends BaseTestCase
+abstract class TestCase extends OrchestraTestCase
 {
-    use WithWorkbench;
-
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Register factories with correct namespace
+        Factory::guessFactoryNamesUsing(
+            fn (string $modelName) => 'Mbsoft\\BanquetHallManager\\Database\\Factories\\'.class_basename($modelName).'Factory'
+        );
 
         $this->loadLaravelMigrations();
         $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
@@ -41,6 +44,7 @@ abstract class TestCase extends BaseTestCase
         // Set package configuration
         $app['config']->set('banquethallmanager.default_tenant_id', 1);
         $app['config']->set('banquethallmanager.tenant_model', \Illuminate\Foundation\Auth\User::class);
+        $app['config']->set('banquethallmanager.enable_tenant_scoping', true);
     }
 
     protected function setupTestData(): void
