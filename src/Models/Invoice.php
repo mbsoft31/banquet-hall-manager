@@ -2,45 +2,52 @@
 
 namespace Mbsoft\BanquetHallManager\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Mbsoft\BanquetHallManager\Support\Traits\BelongsToTenant;
+use Mbsoft\BanquetHallManager\Database\Factories\InvoiceFactory;
 
 class Invoice extends Model
 {
-    use BelongsToTenant;
+    use HasFactory, BelongsToTenant;
 
     protected $table = 'bhm_invoices';
 
     protected $fillable = [
         'tenant_id',
         'event_id',
-        'client_id',
         'invoice_number',
+        'issue_date',
+        'due_date',
         'subtotal',
         'tax_amount',
-        'discount_amount',
         'total_amount',
-        'due_date',
         'status',
+        'notes',
     ];
 
     protected $casts = [
+        'issue_date' => 'date',
+        'due_date' => 'date',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
-        'due_date' => 'date',
     ];
+
+    protected static function newFactory()
+    {
+        return InvoiceFactory::new();
+    }
 
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function client(): BelongsTo
+    public function payments(): HasMany
     {
-        return $this->belongsTo(Client::class);
+        return $this->hasMany(Payment::class);
     }
 }
-
