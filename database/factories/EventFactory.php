@@ -26,7 +26,7 @@ class EventFactory extends Factory
             'end_at' => $endAt,
             'guest_count' => $this->faker->numberBetween(20, 300),
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'completed', 'cancelled']),
-            'special_requests' => $this->faker->optional()->randomElements(
+            'special_requests' => $this->faker->optional(0.3)->randomElements(
                 ['vegetarian_menu', 'live_music', 'photography', 'decorations', 'parking'],
                 $this->faker->numberBetween(0, 3)
             ),
@@ -59,17 +59,10 @@ class EventFactory extends Factory
         ]);
     }
 
-    public function configure(): static
+    public function forTenant(int $tenantId): static
     {
-        return $this->afterMaking(function (Event $event) {
-            if (!$event->tenant_id) {
-                $event->tenant_id = config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1));
-            }
-        })->afterCreating(function (Event $event) {
-            if (!$event->tenant_id) {
-                $event->tenant_id = config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1));
-                $event->save();
-            }
-        });
+        return $this->state(fn (array $attributes) => [
+            'tenant_id' => $tenantId,
+        ]);
     }
 }

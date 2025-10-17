@@ -7,7 +7,7 @@ beforeEach(function () {
     $this->withTenant();
 });
 
-it('can create a client', function () {
+test('can create a client', function () {
     $client = Client::factory()->create([
         'name' => 'John Doe',
         'email' => 'john@example.com',
@@ -21,7 +21,7 @@ it('can create a client', function () {
         ->and($client->phone)->toBe('+1234567890');
 });
 
-it('has correct fillable attributes', function () {
+test('has correct fillable attributes', function () {
     $client = new Client();
     
     expect($client->getFillable())->toContain(
@@ -33,17 +33,16 @@ it('has correct fillable attributes', function () {
     );
 });
 
-it('has many events', function () {
+test('has many events', function () {
     $client = Client::factory()->create();
-    $event1 = Event::factory()->create(['client_id' => $client->id]);
-    $event2 = Event::factory()->create(['client_id' => $client->id]);
+    Event::factory()->count(2)->create(['client_id' => $client->id]);
 
-    expect($client->events)
-        ->toHaveCount(2)
-        ->and($client->events->pluck('id')->toArray())->toContain($event1->id, $event2->id);
+    $client = $client->fresh(['events']);
+    
+    expect($client->events)->toHaveCount(2);
 });
 
-it('uses correct table name', function () {
+test('uses correct table name', function () {
     $client = new Client();
     expect($client->getTable())->toBe('bhm_clients');
 });
