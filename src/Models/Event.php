@@ -34,7 +34,7 @@ class Event extends Model
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'special_requests' => 'array',
-        'total_amount' => 'decimal:2',
+        'total_amount' => 'float:2'
     ];
 
     protected static function newFactory()

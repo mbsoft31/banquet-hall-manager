@@ -6,7 +6,7 @@ return [
     'payment_due_days' => 30,
     'tax_rate' => 0.18,
     'currencies' => ['DZD', 'USD', 'EUR'],
-    'payment_methods' => ['cash', 'card', 'bank_transfer'],
+    'payment_methods' => ['cash', 'credit_card', 'bank_transfer', 'check', 'paypal'],
     'event_types' => ['wedding', 'conference', 'birthday', 'corporate'],
     'notification_channels' => ['mail'],
     'invoice_prefix' => 'BHM',

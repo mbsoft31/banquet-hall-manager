@@ -61,6 +61,8 @@ it('casts attributes correctly', function () {
         'total_amount' => 1500.50,
     ]);
 
+    $event = $event->refresh();
+
     expect($event->start_at)->toBeInstanceOf(Carbon\Carbon::class)
         ->and($event->end_at)->toBeInstanceOf(Carbon\Carbon::class)
         ->and($event->special_requests)->toBeArray()

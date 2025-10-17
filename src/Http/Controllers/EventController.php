@@ -46,11 +46,13 @@ class EventController extends BaseController
         return EventResource::collection($query->paginate($perPage));
     }
 
-    public function show(Event $event)
+    public function show(int $event)
     {
-        $this->authorize('view', $event);
-        $event->load(['hall:id,name', 'client:id,name']);
-        return EventResource::make($event);
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($event);
+        $this->authorize('view', $eventModel);
+        $eventModel->load(['hall:id,name', 'client:id,name']);
+
+        return EventResource::make($eventModel);
     }
 
     public function store(StoreEventRequest $request)
@@ -65,13 +67,16 @@ class EventController extends BaseController
         unset($data['tenant_id']);
 
         $event = Event::create($data);
+        $event = Event::withoutGlobalScopes()->findOrFail($event->id);
         $event->load(['hall:id,name', 'client:id,name']);
+
         return EventResource::make($event)->response()->setStatusCode(201);
     }
 
-    public function update(UpdateEventRequest $request, Event $event)
+    public function update(UpdateEventRequest $request, int $event)
     {
-        $this->authorize('update', $event);
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($event);
+        $this->authorize('update', $eventModel);
         $data = $request->validated();
 
         if (array_key_exists('hall_id', $data)) {
@@ -83,15 +88,18 @@ class EventController extends BaseController
 
         unset($data['tenant_id']);
 
-        $event->update($data);
-        $event->load(['hall:id,name', 'client:id,name']);
-        return EventResource::make($event);
+        $eventModel->update($data);
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($eventModel->id);
+        $eventModel->load(['hall:id,name', 'client:id,name']);
+
+        return EventResource::make($eventModel);
     }
 
-    public function destroy(Event $event)
+    public function destroy(int $event)
     {
-        $this->authorize('delete', $event);
-        $event->delete();
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($event);
+        $this->authorize('delete', $eventModel);
+        $eventModel->delete();
         return response()->noContent();
     }
 
@@ -113,7 +121,7 @@ class EventController extends BaseController
 
     public function reschedule(int $event)
     {
-        $eventModel = Event::findOrFail($event);
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($event);
         $this->authorize('update', $eventModel);
         $data = request()->validate([
             'start_at' => ['required', 'date'],
@@ -123,14 +131,20 @@ class EventController extends BaseController
             return response()->json(['message' => 'Scheduling conflict for hall.'], 422);
         }
         $eventModel->update($data);
-        return EventResource::make($eventModel->refresh());
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($eventModel->id);
+        $eventModel->load(['hall:id,name', 'client:id,name']);
+
+        return EventResource::make($eventModel);
     }
 
     public function cancel(int $event)
     {
-        $eventModel = Event::findOrFail($event);
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($event);
         $this->authorize('update', $eventModel);
         $eventModel->update(['status' => 'cancelled']);
-        return EventResource::make($eventModel->refresh());
+        $eventModel = Event::withoutGlobalScopes()->findOrFail($eventModel->id);
+        $eventModel->load(['hall:id,name', 'client:id,name']);
+
+        return EventResource::make($eventModel);
     }
 }

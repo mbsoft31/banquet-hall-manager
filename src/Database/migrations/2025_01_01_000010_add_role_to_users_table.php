@@ -7,20 +7,36 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'role')) {
-            Schema::table('users', function (Blueprint $t) {
-                $t->string('role')->nullable()->index();
-            });
+        if (!Schema::hasTable('users')) {
+            return;
         }
+
+        Schema::table('users', function (Blueprint $t) {
+            if (!Schema::hasColumn('users', 'tenant_id')) {
+                $t->unsignedBigInteger('tenant_id')->nullable()->index();
+            }
+
+            if (!Schema::hasColumn('users', 'role')) {
+                $t->string('role')->nullable()->index();
+            }
+        });
     }
 
     public function down(): void
     {
-        if (Schema::hasTable('users') && Schema::hasColumn('users', 'role')) {
-            Schema::table('users', function (Blueprint $t) {
-                $t->dropColumn('role');
-            });
+        if (!Schema::hasTable('users')) {
+            return;
         }
+
+        Schema::table('users', function (Blueprint $t) {
+            if (Schema::hasColumn('users', 'role')) {
+                $t->dropColumn('role');
+            }
+
+            if (Schema::hasColumn('users', 'tenant_id')) {
+                $t->dropColumn('tenant_id');
+            }
+        });
     }
 };
 

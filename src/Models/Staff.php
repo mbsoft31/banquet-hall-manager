@@ -19,7 +19,7 @@ class Staff extends Model
         'name',
         'email',
         'phone',
-        'position',
+        'role',
         'hourly_rate',
     ];
 

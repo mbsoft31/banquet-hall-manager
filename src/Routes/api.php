@@ -29,7 +29,7 @@ Route::prefix('api/bhm')
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('events', EventController::class);
     Route::patch('events/{event}/reschedule', [EventController::class, 'reschedule']);
-    Route::post('events/{event}/cancel', [EventController::class, 'cancel']);
+    Route::patch('events/{event}/cancel', [EventController::class, 'cancel']);
     Route::apiResource('bookings', BookingController::class);
     Route::apiResource('invoices', InvoiceController::class)->only(['index','show','update']);
     Route::post('events/{event}/invoice', [InvoiceController::class, 'storeFromEvent']);

@@ -18,11 +18,13 @@ class Invoice extends Model
     protected $fillable = [
         'tenant_id',
         'event_id',
+        'client_id',
         'invoice_number',
         'issue_date',
         'due_date',
         'subtotal',
         'tax_amount',
+        'discount_amount',
         'total_amount',
         'status',
         'notes',
@@ -31,9 +33,10 @@ class Invoice extends Model
     protected $casts = [
         'issue_date' => 'date',
         'due_date' => 'date',
-        'subtotal' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'subtotal' => 'float',
+        'tax_amount' => 'float',
+        'discount_amount' => 'float',
+        'total_amount' => 'float',
     ];
 
     protected static function newFactory()

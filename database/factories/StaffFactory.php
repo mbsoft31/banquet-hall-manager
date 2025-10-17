@@ -16,7 +16,7 @@ class StaffFactory extends Factory
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
-            'position' => $this->faker->randomElement([
+            'role' => $this->faker->randomElement([
                 'Event Coordinator',
                 'Server',
                 'Bartender',

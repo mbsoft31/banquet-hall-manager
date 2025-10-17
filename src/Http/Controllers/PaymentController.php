@@ -21,7 +21,7 @@ class PaymentController extends BaseController
         if ($invoiceId = request()->query('invoice_id')) {
             $query->where('invoice_id', (int) $invoiceId);
         }
-        $allowedSorts = ['id','invoice_id','amount','method','status','paid_at','created_at'];
+        $allowedSorts = ['id','invoice_id','amount','payment_method','payment_date','status','created_at'];
         $sort = request()->query('sort');
         $dir = strtolower((string) request()->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
         if ($sort && in_array($sort, $allowedSorts, true)) {
@@ -46,32 +46,38 @@ class PaymentController extends BaseController
 
         $invoice = Invoice::findOrFail((int) $data['invoice_id']);
 
-        $amount = (float) $data['amount'];
-        $method = (string) $data['method'];
-        $tendered = isset($data['cash_tendered']) ? (float) $data['cash_tendered'] : null;
+        $requestedAmount = (float) $data['amount'];
+        $alreadyPaid = (float) Payment::where('invoice_id', $invoice->id)->sum('amount');
+        $invoiceTotal = (float) $invoice->total_amount;
+        $balance = max(0.0, round($invoiceTotal - $alreadyPaid, 2));
 
-        if ($method === 'cash') {
-            if ($tendered !== null && $tendered < $amount) {
-                return response()->json(['message' => 'Insufficient cash tendered.'], 422);
-            }
+        if ($requestedAmount > $balance) {
+            return response()->json([
+                'message' => 'Payment amount exceeds invoice balance.',
+                'errors' => [
+                    'amount' => ['Payment amount exceeds invoice balance.'],
+                ],
+            ], 422);
         }
 
-        $data['paid_at'] = Carbon::now();
-        $data['change_given'] = 0;
-        if ($method === 'cash' && $tendered !== null) {
-            $data['change_given'] = round($tendered - $amount, 2);
-        }
+        $payment = Payment::create([
+            'invoice_id' => $invoice->id,
+            'amount' => $requestedAmount,
+            'payment_method' => $data['payment_method'],
+            'payment_date' => $data['payment_date'] ?? Carbon::now()->toDateString(),
+            'status' => $data['status'] ?? 'completed',
+            'transaction_id' => $data['transaction_id'] ?? null,
+            'notes' => $data['notes'] ?? null,
+        ]);
 
-        unset($data['tenant_id']);
-
-        $payment = Payment::create($data);
-
-        // Update invoice status based on total payments
-        $sum = (float) Payment::where('invoice_id', $invoice->id)->sum('amount');
-        if ($sum >= (float) $invoice->total_amount && $invoice->status !== 'paid') {
+        $paidTotal = $alreadyPaid + $requestedAmount;
+        if ($paidTotal >= $invoiceTotal) {
             $invoice->status = 'paid';
-            $invoice->save();
+        } elseif ($paidTotal > 0) {
+            $invoice->status = 'partial';
         }
+
+        $invoice->save();
 
         return PaymentResource::make($payment)->response()->setStatusCode(201);
     }

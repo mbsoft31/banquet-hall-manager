@@ -12,6 +12,7 @@ return new class extends Migration {
             $t->unsignedBigInteger('tenant_id')->index();
             $t->string('name');
             $t->decimal('default_price', 12, 2)->default(0);
+            $t->text('description')->nullable();
             $t->string('unit')->default('unit');
             $t->boolean('is_active')->default(true);
             $t->timestamps();

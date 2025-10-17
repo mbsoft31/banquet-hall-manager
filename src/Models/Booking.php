@@ -25,8 +25,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'unit_price' => 'decimal:2',
-        'total_price' => 'decimal:2',
+        'unit_price' => 'float',
+        'total_price' => 'float',
     ];
 
     protected static function newFactory()

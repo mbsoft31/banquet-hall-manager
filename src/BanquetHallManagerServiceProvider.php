@@ -5,7 +5,6 @@ namespace Mbsoft\BanquetHallManager;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Schema as DbSchema;
 
@@ -40,9 +39,6 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
     {
         // Merge default config so package works without publishing
         $this->mergeConfigFrom(__DIR__.'/Config/banquethallmanager.php', 'banquethallmanager');
-
-        // API Resources without 'data' wrapper for single resources to keep responses terse
-        JsonResource::withoutWrapping();
 
         // If Spatie permissions is installed but tables are not migrated (e.g., testing with sqlite memory),
         // provide a no-op registrar to prevent queries against non-existent tables.
@@ -81,6 +77,9 @@ class BanquetHallManagerServiceProvider extends ServiceProvider
         /** @var Router $router */
         $router = $this->app['router'];
         $router->aliasMiddleware('bhm.tenant', TenantContext::class);
+        $router->bind('event', function ($value) {
+            return Event::withoutGlobalScopes()->findOrFail($value);
+        });
 
         $this->app->afterResolving(Schedule::class, function (Schedule $schedule): void {
             $schedule->command('bhm:mark-overdue')->hourly();

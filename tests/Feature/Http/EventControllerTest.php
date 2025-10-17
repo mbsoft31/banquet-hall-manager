@@ -22,7 +22,7 @@ it('can list events with pagination', function () {
             'guest_count' => 100,
             'status' => 'confirmed',
             'total_amount' => 2500.00,
-        ]);
+        ])->dump();
 
     $response = $this->actingAs($this->user)
         ->getJson('/api/bhm/events');

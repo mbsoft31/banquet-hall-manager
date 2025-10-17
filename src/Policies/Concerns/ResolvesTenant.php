@@ -8,7 +8,9 @@ trait ResolvesTenant
 {
     protected function currentTenantId(?Authenticatable $user): ?int
     {
-        $tid = ($user?->tenant_id) ?? request()->header('X-Tenant-ID');
+        $tid = ($user?->tenant_id)
+            ?? request()->header('X-Tenant-ID')
+            ?? config('banquethallmanager.current_tenant_id');
         return $tid !== null ? (int) $tid : null;
     }
 }

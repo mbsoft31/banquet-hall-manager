@@ -11,8 +11,10 @@ return new class extends Migration {
             $t->id();
             $t->unsignedBigInteger('tenant_id')->index();
             $t->string('name');
+            $t->string('email')->nullable();
             $t->string('phone')->nullable();
             $t->string('role')->nullable();
+            $t->float('hourly_rate')->nullable();
             $t->boolean('is_active')->default(true);
             $t->timestamps();
         });

@@ -10,7 +10,7 @@ trait BelongsToTenant
     {
         static::creating(function ($model) {
             if (config('banquethallmanager.multi_tenancy') && empty($model->tenant_id)) {
-                $tenantId = optional(auth()->user())->tenant_id ?? request()->header('X-Tenant-ID');
+                $tenantId = static::resolveTenantId();
                 if ($tenantId) {
                     $model->tenant_id = $tenantId;
                 }
@@ -21,7 +21,7 @@ trait BelongsToTenant
             if (!config('banquethallmanager.multi_tenancy')) {
                 return;
             }
-            $tenantId = optional(auth()->user())->tenant_id ?? request()->header('X-Tenant-ID');
+            $tenantId = static::resolveTenantId();
             if ($tenantId) {
                 $q->where($q->getModel()->getTable() . '.tenant_id', $tenantId);
             }
@@ -30,11 +30,30 @@ trait BelongsToTenant
 
     public function resolveRouteBindingQuery($query, $value, $field = null)
     {
-        $tenantId = optional(auth()->user())->tenant_id ?? request()->header('X-Tenant-ID');
+        $tenantId = static::resolveTenantId();
         if (config('banquethallmanager.multi_tenancy') && $tenantId) {
             $query->where($this->getTable() . '.tenant_id', $tenantId);
         }
 
         return $query->where($field ?? $this->getRouteKeyName(), $value);
+    }
+
+    protected static function resolveTenantId(): ?int
+    {
+        $userTenant = optional(auth()->user())->tenant_id;
+        if ($userTenant) {
+            return (int) $userTenant;
+        }
+
+        $request = app()->bound('request') ? request() : null;
+        $headerTenant = $request?->header('X-Tenant-ID');
+        if ($headerTenant) {
+            return (int) $headerTenant;
+        }
+
+        $configuredTenant = config('banquethallmanager.current_tenant_id')
+            ?? config('banquethallmanager.default_tenant_id');
+
+        return $configuredTenant !== null ? (int) $configuredTenant : null;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Testing\TestResponse;
 use Mbsoft\BanquetHallManager\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -60,15 +62,28 @@ expect()->extend('toBeValidPaginatedResponse', function () {
 |
 */
 
-function createTenant(array $attributes = []): \Illuminate\Database\Eloquent\Model
+function tenantModel(): string
 {
-    return \Illuminate\Foundation\Auth\User::factory()->create(array_merge([
+    return config('banquethallmanager.tenant_model');
+}
+
+function createTenant(array $attributes = []): Model
+{
+    $model = tenantModel();
+    $tenant = $model::factory()->create(array_merge([
         'email' => 'tenant' . rand(1000, 9999) . '@example.com',
         'name' => 'Test Tenant',
     ], $attributes));
+
+    if (!$tenant->tenant_id) {
+        $tenant->tenant_id = $tenant->id;
+        $tenant->save();
+    }
+
+    return $tenant;
 }
 
-function actingAsTenant(\Illuminate\Database\Eloquent\Model $tenant = null): \Illuminate\Testing\TestResponse
+function actingAsTenant(?Model $tenant = null): \Mbsoft\BanquetHallManager\Tests\TestCase
 {
     $tenant ??= createTenant();
     

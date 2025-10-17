@@ -12,12 +12,12 @@ class PaymentResource extends JsonResource
             'id' => $this->id,
             'invoice_id' => $this->invoice_id,
             'amount' => (float) $this->amount,
-            'method' => $this->method,
-            'reference' => $this->reference,
-            'cash_tendered' => $this->cash_tendered !== null ? (float) $this->cash_tendered : null,
-            'change_given' => (float) $this->change_given,
-            'paid_at' => optional($this->paid_at)->toDateTimeString(),
+            'payment_method' => $this->payment_method,
+            'payment_date' => optional($this->payment_date)->toDateString(),
+            'transaction_id' => $this->transaction_id,
+            'notes' => $this->notes,
             'status' => $this->status,
+            'created_at' => optional($this->created_at)->toDateTimeString(),
         ];
     }
 }

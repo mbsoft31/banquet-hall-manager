@@ -15,11 +15,13 @@ class StorePaymentRequest extends FormRequest
     {
         $methods = (array) config('banquethallmanager.payment_methods', ['cash']);
         return [
-            'invoice_id' => ['required', 'integer'],
+            'invoice_id' => ['required', 'integer', 'exists:bhm_invoices,id'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'method' => ['required', 'string', 'in:'.implode(',', $methods)],
-            'reference' => ['nullable', 'string', 'max:255'],
-            'cash_tendered' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'string', 'in:'.implode(',', $methods)],
+            'payment_date' => ['nullable', 'date'],
+            'status' => ['nullable', 'string', 'in:pending,completed,failed,cancelled'],
+            'transaction_id' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
         ];
     }
 }

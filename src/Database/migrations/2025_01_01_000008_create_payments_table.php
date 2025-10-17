@@ -12,11 +12,10 @@ return new class extends Migration {
             $t->unsignedBigInteger('tenant_id')->index();
             $t->foreignId('invoice_id')->constrained('bhm_invoices')->cascadeOnDelete();
             $t->decimal('amount', 12, 2);
-            $t->string('method');
-            $t->string('reference')->nullable();
-            $t->decimal('cash_tendered', 12, 2)->nullable();
-            $t->decimal('change_given', 12, 2)->default(0);
-            $t->dateTime('paid_at')->nullable();
+            $t->string('payment_method');
+            $t->date('payment_date')->nullable();
+            $t->string('transaction_id')->nullable()->index();
+            $t->text('notes')->nullable();
             $t->string('status')->default('completed');
             $t->timestamps();
 

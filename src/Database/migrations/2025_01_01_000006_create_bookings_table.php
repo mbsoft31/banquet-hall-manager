@@ -11,10 +11,10 @@ return new class extends Migration {
             $t->id();
             $t->unsignedBigInteger('tenant_id')->index();
             $t->foreignId('event_id')->constrained('bhm_events')->cascadeOnDelete();
-            $t->string('description');
             $t->unsignedInteger('quantity')->default(1);
             $t->decimal('unit_price', 12, 2)->default(0);
             $t->decimal('total_price', 12, 2)->default(0);
+            $t->text('notes')->nullable();
             $t->timestamps();
 
             $t->index(['tenant_id', 'event_id']);

@@ -58,4 +58,18 @@ class EventFactory extends Factory
             'special_requests' => ['projector', 'microphone', 'wifi'],
         ]);
     }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Event $event) {
+            if (!$event->tenant_id) {
+                $event->tenant_id = config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1));
+            }
+        })->afterCreating(function (Event $event) {
+            if (!$event->tenant_id) {
+                $event->tenant_id = config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1));
+                $event->save();
+            }
+        });
+    }
 }

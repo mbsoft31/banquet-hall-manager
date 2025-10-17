@@ -9,26 +9,26 @@ class TenantContext
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!config('banquethallmanager.multi_tenancy')) {
+        if (!config('banquethallmanager.multi_tenancy', false)) {
             return $next($request);
         }
 
-        $userTenant = optional($request->user())->tenant_id;
-        $headerTenant = $request->header('X-Tenant-ID');
+        $tenantId = optional($request->user())->tenant_id;
 
-        // If user has a tenant, enforce it and override header
-        if ($userTenant) {
-            $request->headers->set('X-Tenant-ID', (string) $userTenant, true);
-            return $next($request);
+        if ($tenantId) {
+            $request->headers->set('X-Tenant-ID', (string) $tenantId, true);
+        } else {
+            $tenantId = $request->header('X-Tenant-ID');
         }
 
-        // Else require header if enforce_tenant_header is true
-        if (config('banquethallmanager.enforce_tenant_header', true)) {
-            if (!$headerTenant) {
-                return response()->json([
-                    'message' => 'Tenant context required (X-Tenant-ID).'
-                ], 400);
-            }
+        if (!$tenantId && config('banquethallmanager.enforce_tenant_header', false)) {
+            return response()->json([
+                'message' => 'Tenant context required (X-Tenant-ID).'
+            ], 400);
+        }
+
+        if ($tenantId) {
+            config(['banquethallmanager.current_tenant_id' => (int) $tenantId]);
         }
 
         return $next($request);

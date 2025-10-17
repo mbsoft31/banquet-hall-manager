@@ -2,7 +2,6 @@
 
 use Mbsoft\BanquetHallManager\Models\Event;
 use Mbsoft\BanquetHallManager\Policies\EventPolicy;
-use Illuminate\Foundation\Auth\User;
 
 beforeEach(function () {
     $this->withTenant();
@@ -37,7 +36,8 @@ it('allows deleting events for authorized users', function () {
 });
 
 it('denies access to unauthorized users', function () {
-    $unauthorizedUser = User::factory()->create(['role' => 'guest']);
+    $userClass = config('auth.providers.users.model');
+    $unauthorizedUser = $userClass::factory()->create(['role' => 'guest']);
     $event = Event::factory()->create();
     
     expect($this->policy->view($unauthorizedUser, $event))->toBeFalse()

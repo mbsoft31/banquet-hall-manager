@@ -4,6 +4,7 @@ namespace Mbsoft\BanquetHallManager\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Mbsoft\BanquetHallManager\BanquetHallManagerServiceProvider;
+use Mbsoft\BanquetHallManager\Tests\Fixtures\User as TestUser;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
@@ -17,11 +18,7 @@ abstract class TestCase extends OrchestraTestCase
             fn (string $modelName) => 'Mbsoft\\BanquetHallManager\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
 
-        $this->loadLaravelMigrations();
-        $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
-        
-        // Seed basic data needed for tests
-        $this->setupTestData();
+
     }
 
     protected function getPackageProviders($app): array
@@ -42,29 +39,55 @@ abstract class TestCase extends OrchestraTestCase
         ]);
 
         // Set package configuration
+        $app['config']->set('auth.providers.users.model', TestUser::class);
         $app['config']->set('banquethallmanager.default_tenant_id', 1);
-        $app['config']->set('banquethallmanager.tenant_model', \Illuminate\Foundation\Auth\User::class);
+        $app['config']->set('banquethallmanager.current_tenant_id', 1);
+        $app['config']->set('banquethallmanager.multi_tenancy', true);
+        $app['config']->set('banquethallmanager.enforce_tenant_header', false);
+        $app['config']->set('banquethallmanager.tenant_model', TestUser::class);
         $app['config']->set('banquethallmanager.enable_tenant_scoping', true);
     }
 
     protected function setupTestData(): void
     {
         // Create a default tenant for testing
-        \Illuminate\Foundation\Auth\User::factory()->create([
+        $this->userModel()::factory()->create([
             'id' => 1,
             'name' => 'Test Tenant',
             'email' => 'tenant@test.com',
+            'tenant_id' => 1,
         ]);
     }
 
     protected function createAuthenticatedUser(array $attributes = []): \Illuminate\Foundation\Auth\User
     {
-        return \Illuminate\Foundation\Auth\User::factory()->create($attributes);
+        $model = $this->userModel();
+
+        $attributes = array_merge([
+            'tenant_id' => $attributes['tenant_id'] ?? ($attributes['id'] ?? config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1))),
+        ], $attributes);
+
+        return $model::factory()->create($attributes);
     }
 
     protected function withTenant(int $tenantId = 1): static
     {
         config(['banquethallmanager.current_tenant_id' => $tenantId]);
         return $this;
+    }
+
+    protected function userModel(): string
+    {
+        return config('auth.providers.users.model');
+    }
+
+    protected function defineDatabaseMigrations()
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
+    }
+
+    protected function afterRefreshingDatabase()
+    {
+        $this->setupTestData();
     }
 }
