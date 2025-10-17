@@ -3,6 +3,8 @@
 namespace Mbsoft\BanquetHallManager\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Mbsoft\BanquetHallManager\BanquetHallManagerServiceProvider;
 use Mbsoft\BanquetHallManager\Tests\Fixtures\User as TestUser;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -17,8 +19,6 @@ abstract class TestCase extends OrchestraTestCase
         Factory::guessFactoryNamesUsing(
             fn (string $modelName) => 'Mbsoft\\BanquetHallManager\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
-
-
     }
 
     protected function getPackageProviders($app): array
@@ -48,6 +48,29 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('banquethallmanager.enable_tenant_scoping', true);
     }
 
+    protected function defineDatabaseMigrations(): void
+    {
+        // Create users table for testing
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->unsignedBigInteger('tenant_id')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        // Load package migrations
+        $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
+    }
+
+    protected function afterRefreshingDatabase(): void
+    {
+        $this->setupTestData();
+    }
+
     protected function setupTestData(): void
     {
         // Create a default tenant for testing
@@ -59,7 +82,7 @@ abstract class TestCase extends OrchestraTestCase
         ]);
     }
 
-    protected function createAuthenticatedUser(array $attributes = []): \Illuminate\Foundation\Auth\User
+    protected function createAuthenticatedUser(array $attributes = []): TestUser
     {
         $model = $this->userModel();
 
@@ -79,15 +102,5 @@ abstract class TestCase extends OrchestraTestCase
     protected function userModel(): string
     {
         return config('auth.providers.users.model');
-    }
-
-    protected function defineDatabaseMigrations()
-    {
-        $this->loadMigrationsFrom(__DIR__ . '/../src/Database/migrations');
-    }
-
-    protected function afterRefreshingDatabase()
-    {
-        $this->setupTestData();
     }
 }

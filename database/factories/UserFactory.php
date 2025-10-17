@@ -2,14 +2,10 @@
 
 namespace Mbsoft\BanquetHallManager\Database\Factories;
 
+use Mbsoft\BanquetHallManager\Tests\Fixtures\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Mbsoft\BanquetHallManager\Tests\Fixtures\User;
 
-/**
- * @extends Factory<User>
- */
 class UserFactory extends Factory
 {
     protected $model = User::class;
@@ -17,13 +13,26 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'tenant_id' => config('banquethallmanager.current_tenant_id', config('banquethallmanager.default_tenant_id', 1)),
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'role' => 'admin',
             'password' => Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'tenant_id' => 1, // Default tenant for testing
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
+    }
+
+    public function withTenant(int $tenantId): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'tenant_id' => $tenantId,
+        ]);
+    }
+
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
     }
 }

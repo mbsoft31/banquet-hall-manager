@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Testing\TestResponse;
 use Mbsoft\BanquetHallManager\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -62,33 +60,21 @@ expect()->extend('toBeValidPaginatedResponse', function () {
 |
 */
 
-function tenantModel(): string
+function createTenant(array $attributes = []): \Mbsoft\BanquetHallManager\Tests\Fixtures\User
 {
-    return config('banquethallmanager.tenant_model');
-}
-
-function createTenant(array $attributes = []): Model
-{
-    $model = tenantModel();
-    $tenant = $model::factory()->create(array_merge([
+    return \Mbsoft\BanquetHallManager\Tests\Fixtures\User::factory()->create(array_merge([
         'email' => 'tenant' . rand(1000, 9999) . '@example.com',
         'name' => 'Test Tenant',
+        'tenant_id' => 1,
     ], $attributes));
-
-    if (!$tenant->tenant_id) {
-        $tenant->tenant_id = $tenant->id;
-        $tenant->save();
-    }
-
-    return $tenant;
 }
 
-function actingAsTenant(?Model $tenant = null): \Mbsoft\BanquetHallManager\Tests\TestCase
+function actingAsTenant(\Mbsoft\BanquetHallManager\Tests\Fixtures\User $tenant = null): \Illuminate\Testing\TestResponse
 {
     $tenant ??= createTenant();
     
     // Set the current tenant in your application
-    config(['banquethallmanager.current_tenant_id' => $tenant->id]);
+    config(['banquethallmanager.current_tenant_id' => $tenant->tenant_id ?? $tenant->id]);
     
     return test()->actingAs($tenant);
 }

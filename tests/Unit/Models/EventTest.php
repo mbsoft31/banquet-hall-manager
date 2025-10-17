@@ -30,7 +30,7 @@ it('can create an event', function () {
         ->and($event->type)->toBe('wedding')
         ->and($event->status)->toBe('confirmed')
         ->and($event->guest_count)->toBe(150)
-        ->and($event->total_amount)->toBe(5000.00)
+        ->and($event->total_amount)->toEqual('5000.00') // Use toEqual for decimal comparison
         ->and($event->hall_id)->toBe($hall->id)
         ->and($event->client_id)->toBe($client->id);
 });
@@ -61,14 +61,13 @@ it('casts attributes correctly', function () {
         'total_amount' => 1500.50,
     ]);
 
-    $event = $event->refresh();
+    $event = $event->fresh(); // Use fresh() instead of refresh()
 
-    expect($event->start_at)->toBeInstanceOf(Carbon\Carbon::class)
-        ->and($event->end_at)->toBeInstanceOf(Carbon\Carbon::class)
+    expect($event->start_at)->toBeInstanceOf(Illuminate\Support\Carbon::class)
+        ->and($event->end_at)->toBeInstanceOf(Illuminate\Support\Carbon::class)
         ->and($event->special_requests)->toBeArray()
         ->and($event->special_requests)->toBe(['vegetarian_menu', 'live_music'])
-        ->and($event->total_amount)->toBeFloat()
-        ->and($event->total_amount)->toBe(1500.50);
+        ->and($event->total_amount)->toEqual('1500.50'); // Decimal cast returns string
 });
 
 it('belongs to a hall', function () {
@@ -94,6 +93,8 @@ it('has many bookings', function () {
     $booking1 = Booking::factory()->create(['event_id' => $event->id]);
     $booking2 = Booking::factory()->create(['event_id' => $event->id]);
 
+    $event = $event->fresh(['bookings']); // Reload with bookings
+
     expect($event->bookings)
         ->toHaveCount(2)
         ->and($event->bookings->pluck('id')->toArray())->toContain($booking1->id, $booking2->id);
@@ -105,6 +106,7 @@ it('belongs to many staff members', function () {
     $staff2 = Staff::factory()->create();
     
     $event->staff()->attach([$staff1->id, $staff2->id]);
+    $event = $event->fresh(['staff']); // Reload with staff
 
     expect($event->staff)
         ->toHaveCount(2)
@@ -117,11 +119,14 @@ it('uses correct table name', function () {
 });
 
 it('has tenant scope applied', function () {
-    // Create events with different tenant IDs
+    // Temporarily disable tenant scoping to create events with different tenant IDs
+    withoutTenantScope();
+    
     Event::factory()->create(['tenant_id' => 1, 'name' => 'Tenant 1 Event']);
     Event::factory()->create(['tenant_id' => 2, 'name' => 'Tenant 2 Event']);
     
-    // Set current tenant to 1
+    // Re-enable tenant scoping and set current tenant to 1
+    config(['banquethallmanager.enable_tenant_scoping' => true]);
     $this->withTenant(1);
     
     $events = Event::all();
